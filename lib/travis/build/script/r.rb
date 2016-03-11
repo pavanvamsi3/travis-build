@@ -419,12 +419,10 @@ module Travis
             sh.rm "/tmp/#{mactex}"
             sh.export 'PATH', '/usr/texbin:$PATH'
 
-            # set tlpkg writable so no sudo is needed
-            sh.cmd "sudo chmod 757 /usr/local/texlive/2015basic/tlpkg/"
-            sh.cmd 'tlmgr update --self'
+            sh.cmd 'sudo tlmgr update --self'
 
             # Install common packages
-            sh.cmd 'tlmgr install inconsolata upquote '\
+            sh.cmd 'sudo tlmgr install inconsolata upquote '\
               'courier courier-scaled helvetic'
           end
         end
@@ -452,7 +450,7 @@ module Travis
 
             # Download and install pandoc
             sh.cmd "curl -Lo /tmp/#{pandoc_filename} #{pandoc_url}"
-            sh.cmd "sudo installer -pkg \"/tmp/#{pandoc_filename}\""
+            sh.cmd "sudo installer -pkg \"/tmp/#{pandoc_filename}\" -target /"
 
             # Cleanup
             sh.rm "/tmp/#{pandoc_filename}"

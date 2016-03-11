@@ -86,10 +86,28 @@ module Travis
         "https://s3.amazonaws.com/#{bucket}/binaries/#{host_os}/#{rel_version}/$(uname -m)/#{lang}-#{version}.tar.#{ext}"
       end
 
+      def debug_build_via_api?
+        ! data.debug_options.empty?
+      end
+
       private
 
         def config
           data.config
+        end
+
+        def debug
+          if debug_build_via_api?
+            sh.echo "Debug build initiated by #{data.debug_options[:created_by]}", ansi: :yellow
+            if debug_quiet?
+              sh.raw "travis_debug --quiet"
+            else
+              sh.raw "travis_debug"
+            end
+
+            sh.echo
+            sh.echo "All remaining steps, including caching and deploy, will be skipped.", ansi: :yellow
+          end
         end
 
         def run
@@ -133,6 +151,24 @@ module Travis
           apply :disable_sudo
         end
 
+        def reset_state
+          if debug_build_via_api?
+            raise "Debug payload does not contain 'previous_state' value." unless previous_state = data.debug_options[:previous_state]
+
+            sh.echo
+            sh.echo "This is a debug build. The build result is reset to its previous value, \\\"#{previous_state}\\\".", ansi: :yellow
+
+            case previous_state
+            when "passed"
+              sh.export 'TRAVIS_TEST_RESULT', '0', echo: false
+            when "failed"
+              sh.export 'TRAVIS_TEST_RESULT', '1', echo: false
+            when "errored"
+              sh.raw 'travis_terminate 2'
+            end
+          end
+        end
+
         def config_env_vars
           @config_env_vars ||= Build::Env::Config.new(data, config)
           Array(@config_env_vars.data[:env])
@@ -154,6 +190,14 @@ module Travis
           when /^(?i:darwin)/
             '${$(sw_vers -productVersion)%*.*}'
           end
+        end
+
+        def debug_quiet?
+          debug_build_via_api? && data.debug_options[:quiet]
+        end
+
+        def debug_enabled?
+          ENV['TRAVIS_ENABLE_DEBUG_TOOLS'] == '1'
         end
     end
   end
