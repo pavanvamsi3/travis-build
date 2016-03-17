@@ -218,7 +218,7 @@ module Travis
             end
 
             def data_store_options
-              cache_options[data_store.to_sym] || {}
+              cache_options[data_store.to_sym].tap {|x| puts "data_store_options: #{x.inspect}"} || {}
             end
 
             def cache_options
