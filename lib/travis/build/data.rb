@@ -23,7 +23,7 @@ module Travis
       def initialize(data, defaults = {})
         data = data.deep_symbolize_keys
         defaults = defaults.deep_symbolize_keys
-        @data = DEFAULTS.deep_merge(defaults.deep_merge(data)).tap {|x| puts "data: #{x}"}
+        @data = DEFAULTS.deep_merge(defaults.deep_merge(data))
       end
 
       def [](key)
