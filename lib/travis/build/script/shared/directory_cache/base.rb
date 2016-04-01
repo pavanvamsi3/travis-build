@@ -115,7 +115,7 @@ module Travis
           end
 
           def fetch
-            run('fetch', fetch_urls.map {|url| Shellwords.escape(url).to_s}, timing: true)
+            run('fetch', fetch_urls.map {|url| Shellwords.escape(url.tap {|x| puts "fetch_url: #{x.inspect}"}).to_s}, timing: true)
           end
 
           def fetch_urls
